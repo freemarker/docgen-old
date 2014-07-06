@@ -6,10 +6,10 @@
 [#import "customizations.ftl" as customizations]
 [#set nodeHandlers = [customizations, defaultNodeHandlers]]
 [#-- Avoid inital empty line! --]
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
   <link rel="stylesheet" href="docgen-resources/docgen.css" type="text/css">
   <meta name="generator" content="FreeMarker Docgen (DocBook 5)">
   <title>
@@ -39,12 +39,12 @@
 
     [#-- - Render page title: --]
     [#visit titleElement using nodeHandlers]
-    
+
     [#-- - Render either ToF (Table of Files) or Page ToC; --]
     [#--   both is called, but at least one of them will be empty: --]
     [@toc att="docgen_file_element" maxDepth=maxTOFDisplayDepth /]
     [@toc att="docgen_page_toc_element" maxDepth=99 title="Page Contents" minLength=2 /]
-    
+
     [#-- - Render the usual content, like <para>-s etc.: --]
     [#list .node.* as child]
       [#if child.@docgen_file_element?size == 0
@@ -54,7 +54,7 @@
       [/#if]
     [/#list]
   [/#if]
-  
+
   [#-- Render footnotes, if any: --]
   [#set footnotes = defaultNodeHandlers.footnotes]
   [#if footnotes?size != 0]
@@ -142,7 +142,7 @@
           ]</font>[#t]
         [/#if]
       </p>
-      
+
       [@toc_inner tocElems att maxDepth /]
     </div>
     <a name="docgen_afterTheTOC"></a>
