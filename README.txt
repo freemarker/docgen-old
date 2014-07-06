@@ -16,17 +16,17 @@ How to use it?
 Issue:
 
   ant all
-
+  
 This will create lib/docgen.jar and build/api. Then, for more documentation see:
 
   build/api/index.html
-
+  
 Especially, read the documentation of "Transform" there.
 
-For some examples see:
+For some examples see:  
 
   src/test
-
+  
 and
 
   test.xml
