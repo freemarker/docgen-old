@@ -39,23 +39,23 @@ public final class TransformAntTask extends Task {
     {
         transform.setPrintProgress(true);
     }
-
+    
     public void setDestDir(File value) {
         transform.setDestinationDirectory(value.getAbsoluteFile());
     }
-
+    
     public void setSrcDir(File value) {
         transform.setSourceDirectory(value);
     }
-
+    
     public void setShowEditoralNotes(boolean value) {
         transform.setShowEditoralNotes(value);
     }
-
+    
     public void setValidate(boolean value) {
         transform.setValidate(value);
     }
-
+    
     public void setTimeZone(String timeZone) {
         transform.setTimeZone(TimeZone.getTimeZone(timeZone));
     }
@@ -63,7 +63,7 @@ public final class TransformAntTask extends Task {
     public void setGenerateEclipseToC(boolean value) {
         transform.setGenerateEclipseToC(value);
     }
-
+    
     @Override
     public void execute() {
         try {
@@ -73,5 +73,5 @@ public final class TransformAntTask extends Task {
             throw new BuildException(e);
         }
     }
-
+    
 }
