@@ -72,87 +72,99 @@ import freemarker.template.utility.StringUtil;
 
 /**
  * Generates complete HTML-format documentation from a DocBook 5 (XML) book.
- * 
+ *
  * <p>Usage: First set the JavaBean properties, then call {@link #execute()};
- * These must be set:
+ * These must be set:</p>
  * <ul>
- *   <li>{@link #setSourceDirectory(File)}
- *   <li>{@link #setDestinationDirectory(File)}
+ *   <li>{@link #setSourceDirectory(File)}</li>
+ *   <li>{@link #setDestinationDirectory(File)}</li>
  * </ul>
- * 
+ *
  * <p>All files and directories in the source directory will be copied into the
  * destination directory as is (recursively), except these, which will be
- * ignored:
+ * ignored:</p>
  * <ul>
  *   <li>file or directory whose name starts with <tt>"docgen-"</tt> or
  *       <tt>"docgen."</tt>, or whose name is <tt>"docgen"</tt>.
+ *   </li>
  *   <li>file directly in the source directory (not in a sub-directory)
  *       with <tt>xml</tt> file extension
+ *   </li>
  *   <li>file or directory whose name looks like it's just backup, temporary,
  *       SVN-related or CVS-related entry.
+ *   </li>
  * </ul>
- * 
- * <p>The following files/directories are treated specially:
+ *
+ * <p>The following files/directories are treated specially:</p>
  * <ul>
  *   <li><p><tt>book.xml</tt> or <tt>article.xml</tt> (<b>required</b>): the
  *       DocBook XML that we want to transform. It may contains XInclude-s so
- *       it doesn't have to store the whole book or article.
- *       
+ *       it doesn't have to store the whole book or article.</p>
+ *   </li>
+ *
  *   <li><p><tt>docgen.cjson</tt> file (optional):
  *       contains Docgen settings. It uses an extended JSON syntax; see more
  *       <a href="#cjsonLanguage">later</a>. The supported settings are
- *       (all optional):
+ *       (all optional):</p>
  *       <ul>
  *         <li><p><tt>internalBookmarks</tt> (map): Specifies the first part
  *             of the book-mark link list that appears in the navigation bar.
  *             Associates labels with element ID-s (<tt>xml:id</tt> attribute
  *             values). The order of the map entries specifies the order in
- *             which the book-marks will be shown.
- *             
+ *             which the book-marks will be shown.</p>
+ *         </li>
+ *
  *         <li><p><tt>externalBookmarks</tt> (map): Specifies the second part
  *             of the book-mark link list. Associates labels with arbitrary
- *             URL-s or paths. Again, order matters.
- *             
+ *             URL-s or paths. Again, order matters.</p>
+ *         </li>
+ *
  *         <li><p><tt>olinks</tt> (map):
  *            Maps <tt>olink</tt> <tt>targetdoc</tt> attribute values to
- *            actual URL-s.
- *            
+ *            actual URL-s.</p>
+ *         </li>
+ *
  *         <li><p><tt>validation</tt> (map):
  *            This is where you can configure the optional Docgen-specific
- *            DocBook validation restrictions. Accepted map entries are:
+ *            DocBook validation restrictions. Accepted map entries are:</p>
  *            <ul>
  *              <li><tt>programlistingsRequireRole</tt> (boolean):
  *                  defaults to {@code false}.
+ *              </li>
  *              <li><tt>programlistingsRequireLanguage</tt> (boolean):
  *                  defaults to {@code false}.
+ *              </li>
  *              <li><tt>outputFilesCanUseAutoID</tt> (boolean):
  *                  defaults to {@code false}.
+ *              </li>
  *              <li><tt>maximumProgramlistingWidth</tt> (int): defaults to
  *                  {@link Integer#MAX_VALUE}. The maximum number of characters
  *                  per line in <tt>programlisting</tt>-s.
+ *              </li>
  *            </ul>
- *            
+ *		   </li>
  *         <li><p><tt>contentDirectory</tt> (string): By default the Docgen
  *            configuration files and the files that store the actual book
  *            content (DocBook XML-s, images, etc.) are in the same directory,
  *            the so called source directory. By setting this setting, the last
  *            can be separated from the directory of the configuration files.
  *            If it's not an absolute path then it will be interpreted
- *            relatively to the source directory.
- *            
+ *            relatively to the source directory.</p>
+ *         </li>
+ *
  *         <li><p><a name="setting_lowestFileElementRank"></a>
  *            <tt>lowestFileElementRank</tt> (string): The lowest document
  *            structure element "rank" for which an own output file will be
  *            created. Note that possibly not all such elements are shown in a
  *            given TOF (Table of Files) due to the <tt>maxTOFDisplayDepth</tt>
- *            or <tt>maxMainTOFDisplayDepth</tt> setting.
- *            
+ *            or <tt>maxMainTOFDisplayDepth</tt> setting.</p>
+ *
  *            <p>"rank" symbolizes how big structural unit the element stands
  *            for. The valid ranks are, from the lowest to the highest:
  *            {@code simplesect}, {@code section3}, {@code section2},
  *            {@code section1}, {@code chapter}, {@code part},
- *            {@code book}.
- *            If the name of an element is the same as one of the rank names
+ *            {@code book}.</p>
+ *            <p>If the name of an element is the same as one of the rank names
  *            then that will be its rank. For <tt>section</tt>-s, the number in
  *            the rank name tells how deep the <tt>section</tt> is nested into
  *            other <tt>section</tt>-s (1 means a <tt>section</tt> that is not
@@ -168,69 +180,75 @@ import freemarker.template.utility.StringUtil;
  *            unless it's directly under a <tt>part</tt> element (not just a
  *            {@code part}-ranked element!) or <tt>book</tt> element. However,
  *            if the root element of the document is <tt>article</tt>, that
- *            will receive <tt>chapter</tt> rank.
- *            
+ *            will receive <tt>chapter</tt> rank.</p>
+ *
  *            <p>Note that the content of some elements, like of
  *            <tt>preface</tt>-s, is kept in a single file regardless of this
- *            setting.
- *            
- *            <p>The default value is <tt>section1</tt>.
- *            
+ *            setting.</p>
+ *
+ *            <p>The default value is <tt>section1</tt>.</p>
+ *         </li>
+ *
  *         <li><p><tt>lowestPageTOCElementRank</tt> (string):
  *            The lowest document structure element "rank" for which a
- *            "Page Contents" ToC entry will be created.
- *            
- *            <p>About "ranks" see <a name="setting_lowestFileElementRank">the
- *            <tt>lowestFileElementRank</tt> setting</a>.
- *            
- *            <p>The default value is <tt>section3</tt>.
- 
+ *            "Page Contents" ToC entry will be created.</p>
+ *
+ *            <p>About "ranks" see <a href="#setting_lowestFileElementRank">the
+ *            <tt>lowestFileElementRank</tt> setting</a>.</p>
+ *
+ *            <p>The default value is <tt>section3</tt>.</p>
+ *         </li>
+
  *         <li><p><tt>maxTOFDisplayDepth</tt> (int): In a given TOF
  *            (Table of Files) (because there can be multiple TOF-s, like there
  *            can be a book-level TOF, and then there can be chapter-level
  *            TOF-s), this is the nesting level until TOF entries are actually
- *            displayed.
- *            Depth level 0 is considered to by the level where the
+ *            displayed.</p>
+ *            <p>Depth level 0 is considered to by the level where the
  *            file-element of the HTML page which contains the TOF is.
- *            Defaults to {@link Integer#MAX_VALUE}. Must be at least {@code 1}.
- *            
+ *            Defaults to {@link Integer#MAX_VALUE}. Must be at least {@code 1}.</p>
+ *         </li>
+ *
  *         <li><p><tt>maxMainTOFDisplayDepth</tt> (int): Same as
  *            <tt>maxTOFDisplayDepth</tt>, but only applies to the TOF on the
  *            first (index) page. Defaults to the value of
- *            <tt>maxTOFDisplayDepth</tt>.
- *            
+ *            <tt>maxTOFDisplayDepth</tt>.</p>
+ *         </li>
+ *
  *         <li><p><tt>numberedSections</tt> (boolean): Specifies if
  *            <tt>section</tt> element titles should be shown with numbering.
  *            This will result in titles like "2 something" "2.1 Something" or
  *            "2.1.3 Something", even "B.1 Something" (last is a
- *            <tt>section</tt> under Appendix B).
- *            
+ *            <tt>section</tt> under Appendix B).</p>
+ *
  *            <p>Note that within some elements, like inside <tt>preface</tt>-s,
- *            nothing has prefixes (labels) so this setting is ignored there.
- *            
+ *            nothing has prefixes (labels) so this setting is ignored there.</p>
+ *
  *         <li><p><tt>generateEclipseTOC</tt> (boolean): Sets whether an Eclipse
  *            ToC XML is generated for the generated HTML-s. Defaults to
- *            <tt>false</tt>.
- *            
+ *            <tt>false</tt>.</p>
+ *         </li>
+ *
  *         <li><p><tt>eclipse</tt> (map):
  *            Stores the settings of the Eclipse-ToC-generation.
  *            (Note that you still must turn that on with
  *            <tt>generateEclipseTOC</tt>; the mere presence
  *            of this setting will not do that.).
- *            Accepted map entries are:
+ *            Accepted map entries are:</p>
  *            <ul>
  *              <li><tt>link_to</tt> (string): The value of
  *                  <tt>toc.@link_to</tt> in the generated ToC file. If not
  *                  specified, there will not be any <tt>link_to</tt> attribute.
  *            </ul>
- *            
+ *         </li>
+ *
  *         <li><p><tt>locale</tt> (string): The "nationality" used for
  *            lexical shorting, number formatting and such things.
  *            Defaults to <tt>"en_US"</tt>.
- *            
+ *
  *         <li><p><tt>timeZone</tt> (string): The time zone used for the
  *            date/time shown. Defaults to <tt>"GMT"</tt>.
- *            
+ *
  *         <li><p><tt>disableJavaScript</tt> (boolean): Disallow JavaScript in
  *           the generated pages. Defaults to <tt>false</tt> (i.e., JavaScript
  *           is allowed). The pages are more functional with JavaScript, but
@@ -243,30 +261,33 @@ import freemarker.template.utility.StringUtil;
  *           even with JavaScript blocked by MSIE, the page will remain as
  *           functional as if you were generating it with
  *           <tt>disableJavaScript</tt> set to <tt>true</tt>, only the security
- *           warning is annoying.
+ *           warning is annoying.</p>
+ *         </li>
  *
  *         <li><p><tt>showXXELogo</tt> (boolean): Specifies if an
  *           "Edited with XXE" logo should be shown on the generated pages.
- *           Defaults to <tt>false</tt>.
+ *           Defaults to <tt>false</tt>.</p>
+ *         </li>
  *
  *       </ul>
- *       
+ *
  *       <li><p><tt>docgen-templates</tt> directory:
  *           The templates here will have priority over the ones in the
  *           {@code org.freemarker.docgen.templates} package.
  *           This is mostly used for overriding <tt>customizations.ftl</tt>;
  *           that FTL is <tt>#import</tt>-ed at the beginning of all
  *           template files, and searched first for the
- *           <tt>#visit</tt>/<tt>#recurse</tt> calls.
+ *           <tt>#visit</tt>/<tt>#recurse</tt> calls.</p>
+ *       </li>
  * </ul>
  *
- * 
- * <p><b><font size="+1"><a name="cjsonLanguage"></a>
+ *
+ * <p><b><a name="cjsonLanguage"></a>
  *   The CJSON language
- * </b></font></p>
- * 
+ * </b></p>
+ *
  * <p>It's JSON extended with some features that make it more convenient for
- * configuration files:
+ * configuration files:</p>
  * <ul>
  *   <li>String literals whose value only contains letters (UNICODE), digits
  *       (UNICODE) and characters {@code '.'}, {@code '_'}, {@code '$'},
@@ -276,38 +297,46 @@ import freemarker.template.utility.StringUtil;
  *       <tt>{"name": "Big Joe", "color": "red"}</tt> you can just
  *       write <tt>{name: "Big Joe", color: red}</tt>. (There are no
  *       variable references in CJSON.)
+ *   </li>
  *   <li>In key-value pairs the value defaults to {@code true}. Like, instead
- *       of <tt>{showLogo: true}</tt> you can just write <tt>{showLogo}</tt>. 
- *   <li>You can omit the commas that otherwise would be at the end of the line.
+ *       of <tt>{showLogo: true}</tt> you can just write <tt>{showLogo}</tt>.
+ *   </li>
+ *   <li>You can omit the commas that otherwise would be at the end of the line.</li>
  *   <li>JavaScript comments are supported (<tt>/* ... *<!-- -->/</tt> and
- *       <tt>// ...</tt>) 
- *   <li>If a file is expected to contain a map, like most configuration 
+ *       <tt>// ...</tt>)
+ *   </li>
+ *   <li>If a file is expected to contain a map, like most configuration
  *       files are, putting the whole thing between <tt>{</tt> and <tt>}</tt> is
  *       optional.
+ *   </li>
  *   <li>Maps remember the order in which the entries were specified in the
  *       expression. The consumer of the configuration file will not utilize
  *       this for most settings anyway, but for certain kind of settings it's
  *       just more intuitive than getting the entries in a some random order.
- *   <li>A comma may be used after the last item of a list or map.
- *   <li>Supports FTL raw string literals (e.g. {@code r"C:\Windows\System32"}).
+ *   </li>
+ *   <li>A comma may be used after the last item of a list or map.</li>
+ *   <li>Supports FTL raw string literals (e.g. {@code r"C:\Windows\System32"}).</li>
  *   <li>Supports function calls (e.g. {@code f(1, 2)}), although it's up to the
  *       consumer to resolve them; the CJSON language itself doesn't define any
  *       functions.
+ *   </li>
  * </ul>
- * 
+ *
  * <p>When CJSON is stored in a file, the file extension should be
  * <tt>cjson</tt> and UTF-8 charset should be is used. However, the charset can
  * be overridden with a initial
  * <tt>//&nbsp;charset:&nbsp;<i>charsetName</i></tt> comment [*].
- * Initial BOM is silently ignored.
- * 
+ * Initial BOM is silently ignored.</p>
+ *
  * <blockquote>
  * <p>* The comment is considered to be a charset override only if when it's
  *      decoded with ISO-8859-1 it stands that:
+ * </p>
  * <ul>
  *   <li>Apart from white-space (and an initial BOM) it's the first thing in
  *       the file.
- *   <li>It's a <tt>//</tt> comment, not a <tt>/* ... *<!-- -->/</tt> comment.
+ *   </li>
+ *   <li>It's a <tt>//</tt> comment, not a <tt>/* ... *<!-- -->/</tt> comment.</li>
  *   <li>Ignoring white-space, the first word inside the comment is
  *       <tt>charset</tt> or <tt>encoding</tt> (they are equivalent). That's
  *       followed by optional whitespace, then a colon, then optional
@@ -317,7 +346,8 @@ import freemarker.template.utility.StringUtil;
  *       of the file (whichever comes first) all kind of characters can occur,
  *       and they will all belong to the charset name (which will be
  *       interpreted after trimming surrounding whitespace).
- * <ul>
+ *   </li>
+ * </ul>
  * </blockquote>
  */
 public final class Transform {
@@ -331,7 +361,7 @@ public final class Transform {
     static final String FILE_DETAILED_TOC_HTML = "detailed-toc.html";
     static final String FILE_INDEX_HTML = "index.html";
     static final String DIR_TEMPLATES = "docgen-templates";
-    
+
     static final String SETTING_VALIDATION = "validation";
     static final String SETTING_INTERNAL_BOOKMARKS = "internalBookmarks";
     static final String SETTING_EXTERNAL_BOOKMARKS = "externalBookmarks";
@@ -352,7 +382,7 @@ public final class Transform {
     static final String SETTING_MAX_MAIN_TOF_DISPLAY_DEPTH
             = "maxMainTOFDisplayDepth";
     static final String SETTING_NUMBERED_SECTIONS = "numberedSections";
-    
+
     static final String SETTING_VALIDATION_PROGRAMLISTINGS_REQ_ROLE
             = "programlistingsRequireRole";
     static final String SETTING_VALIDATION_PROGRAMLISTINGS_REQ_LANG
@@ -400,15 +430,15 @@ public final class Transform {
     private static final String VAR_SHOW_BREADCRUMB = "showBreadCrumb";
 
     private static final String PAGE_TYPE_DETAILED_TOC = "docgen:detailed_toc";
-    
+
     // Docgen-specific XML attributes (added during DOM-tree postediting):
-    
+
     /**
      * Marks an element for which a separate file is created; attached to
      * document structure elements, value is always {@code "true"}.
      */
     private static final String A_DOCGEN_FILE_ELEMENT = "docgen_file_element";
-    
+
     /**
      * Marks an element for which a page ToC ("Page Contents") line is shown;
      * attached to document structure elements, it's value is always
@@ -424,30 +454,30 @@ public final class Transform {
      */
     private static final String A_DOCGEN_DETAILED_TOC_ELEMENT
             = "docgen_detailed_toc_element";
-    
+
     /**
      * The top-level document-structure element is marked with this;
      * it's value is always {@code "true"}.
      */
     private static final String A_DOCGEN_ROOT_ELEMENT = "docgen_root_element";
-    
+
     /**
      * The numbering or letter or whatever that is shown before the tile, such
      * as "2.4" or "IV"; attached to document structure elements that use a
      * title prefix.
      */
     private static final String A_DOCGEN_TITLE_PREFIX = "docgen_title_prefix";
-    
+
     /**
      * The integer ordinal of the document structure element within its own ToC
      * level, counting all kind of preceding document structure siblings;
      * attached to the document structure element.
-     * 
+     *
      * @see #A_DOCGEN_NUMBERING
      */
     private static final String A_DOCGEN_UNITED_NUMBERING
         = "docgen_united_numbering";
-    
+
     /**
      * Describes how "big" a title should be; attached to the document structure
      * element (no to the title element). For the possible values see the
@@ -455,26 +485,26 @@ public final class Transform {
      * {@link #preprocessDOM_addRanks(Document)}.
      */
     private static final String A_DOCGEN_RANK = "docgen_rank";
-    
+
     /**
      * This is how automatically added id attribute values start.
      */
     static final String AUTO_ID_PREFIX = "autoid_";
 
     static final String DOCGEN_ID_PREFIX = "docgen_";
-    
+
     /** Elements for which an id attribute automatically added if missing */
     private static final Set<String> GUARANTEED_ID_ELEMENTS;
     static {
         Set<String> idAttElems = new HashSet<String>();
-        
+
         for (String elemName : DOCUMENT_STRUCTURE_ELEMENTS) {
             idAttElems.add(elemName);
         }
-        
+
         idAttElems.add(E_GLOSSARY);
         idAttElems.add(E_GLOSSENTRY);
-        
+
         GUARANTEED_ID_ELEMENTS = Collections.unmodifiableSet(idAttElems);
     }
 
@@ -486,64 +516,64 @@ public final class Transform {
     private static final Set<String> PREFACE_LIKE_ELEMENTS;
     static {
         Set<String> sinlgeFileElems = new HashSet<String>();
-        
+
         sinlgeFileElems.add(E_PREFACE);
-        
+
         PREFACE_LIKE_ELEMENTS = Collections.unmodifiableSet(sinlgeFileElems);
     }
-    
+
     // -------------------------------------------------------------------------
     // Settings:
 
     private File destDir;
-    
+
     private File srcDir;
 
     private File contentDir;
-    
+
     /** Element types for which a new output file is created  */
     private DocumentStructureRank lowestFileElemenRank
             = DocumentStructureRank.SECTION1;
-    
+
     private DocumentStructureRank lowestPageTOCElemenRank
             = DocumentStructureRank.SECTION3;
-    
+
     private int maxTOFDisplayDepth = Integer.MAX_VALUE;
 
     private int maxMainTOFDisplayDepth;  // 0 indicates "not set";
-    
+
     private boolean numberedSectons;
-    
+
     private boolean generateEclipseTOC;
-    
+
     private boolean showEditoralNotes;
-    
+
     private boolean showXXELogo;
-    
+
     private boolean disableJavaScript;
-    
+
     private boolean validate = true;
-    
+
     private Locale locale = Locale.US;
-    
+
     private TimeZone timeZone = TimeZone.getTimeZone("GMT");
-    
+
     private boolean printProgress;
-    
+
     private LinkedHashMap<String, String> internalBookmarks
         = new LinkedHashMap<String, String>();
-    
+
     private LinkedHashMap<String, String> externalBookmarks
         = new LinkedHashMap<String, String>();
-    
+
     private DocgenValidationOptions validationOps
             = new DocgenValidationOptions();
-    
+
     // -------------------------------------------------------------------------
     // Global transformation state:
-    
+
     private boolean executed;
-    
+
     private Map<String, String> olinks = new HashMap<String, String>();
     private Map<String, List<NodeModel>> primaryIndexTermLookup;
     private Map<String, SortedMap<String, List<NodeModel>>>
@@ -552,42 +582,42 @@ public final class Transform {
     private List<TOCNode> tocNodes;
     private List<String> indexEntries;
     private Configuration fmConfig;
-    
+
     // -------------------------------------------------------------------------
     // Output-file-specific state:
-    
+
     private TOCNode currentFileTOCNode;
-    
+
     // -------------------------------------------------------------------------
     // Misc. fields:
 
     private DocgenLogger logger = new DocgenLogger() {
-        
+
         public void info(String message) {
             if (printProgress) {
                 System.out.println(message);
             }
         }
-    
+
         public void warning(String message) {
             if (printProgress) {
                 System.out.println("Warning:" + message);
             }
         }
     };
-    
+
     // -------------------------------------------------------------------------
     // Methods:
-    
+
     /**
      * Loads the source XML and generates the output in the destination
      * directory. Don't forget to set JavaBean properties first.
-     * 
-     * @throws DocgenException If a docgen-specific error occurs 
+     *
+     * @throws DocgenException If a docgen-specific error occurs
      * @throws IOException If a file or other resource is missing or otherwise
      *      can't be read/written.
      * @throws SAXException If the XML is not well-formed and valid, or the
-     *      SAX XML parsing has other problems. 
+     *      SAX XML parsing has other problems.
      */
     public void execute()
             throws DocgenException, IOException, SAXException {
@@ -597,9 +627,9 @@ public final class Transform {
                     + "use a new " + Transform.class.getName() + ".");
         }
         executed  = true;
-        
+
         // Check Java Bean properties:
-        
+
         if (srcDir == null) {
             throw new DocgenException(
                     "The source directory (the DocBook XML) wasn't specified.");
@@ -609,18 +639,18 @@ public final class Transform {
                     "Source directory doesn't exist: "
                     + srcDir.getAbsolutePath());
         }
-        
+
         if (destDir == null) {
             throw new DocgenException(
-                    "The destination directory wasn't specified."); 
+                    "The destination directory wasn't specified.");
         }
         // Note: This directory will be created automatically if missing.
-        
+
         // Load configuration file:
-        
+
         File templatesDir = null;
         String eclipseLinkTo = null;
-        
+
         File cfgFile = new File(srcDir, FILE_SETTINGS);
         if (cfgFile.exists()) {
             Map<String, Object> cfg;
@@ -630,11 +660,11 @@ public final class Transform {
                 throw new DocgenException(e.getMessage(),
                         e.getCause());
             }
-            
+
             for (Entry<String, Object> cfgEnt : cfg.entrySet()) {
                 final String settingName = cfgEnt.getKey();
                 final Object settingValue = cfgEnt.getValue();
-                
+
                 if (settingName.equals(SETTING_OLINKS)) {
                     Map<String, Object> m = itIsAMapSetting(
                             cfgFile, settingName, settingValue);
@@ -774,7 +804,7 @@ public final class Transform {
                         throw newCfgFileException(cfgFile, settingName,
                                 msg);
                     }
-                    
+
                     if (settingName.equals(
                             SETTING_LOWEST_FILE_ELEMENT_RANK)) {
                         lowestFileElemenRank = rank;
@@ -812,17 +842,17 @@ public final class Transform {
                 }
             }
         }
-        
-        // Ensure proper rank relations: 
+
+        // Ensure proper rank relations:
         if (lowestPageTOCElemenRank.compareTo(lowestFileElemenRank) > 0) {
             lowestPageTOCElemenRank = lowestFileElemenRank;
         }
-        
+
         // Ensure {@link #maxMainTOFDisplayDepth} is set:
         if (maxMainTOFDisplayDepth == 0) {
             maxMainTOFDisplayDepth = maxTOFDisplayDepth;
         }
-        
+
         templatesDir = new File(srcDir, DIR_TEMPLATES);
         if (!templatesDir.exists()) {
             templatesDir = null;
@@ -831,16 +861,16 @@ public final class Transform {
         if (contentDir == null) {
             contentDir = srcDir;
         }
-        
+
         // Initialize state fields
-        
+
         primaryIndexTermLookup = new HashMap<String, List<NodeModel>>();
         secondaryIndexTermLookup
                 = new HashMap<String, SortedMap<String, List<NodeModel>>>();
         elementsById = new HashMap<String, Element>();
         tocNodes = new ArrayList<TOCNode>();
         indexEntries = new ArrayList<String>();
-        
+
         // Setup FreeMarker:
 
         try {
@@ -850,7 +880,7 @@ public final class Transform {
         }
 
         fmConfig = new Configuration();
-        
+
         TemplateLoader templateLoader = new ClassTemplateLoader(
                 Transform.class, "templates");
         if (templatesDir != null) {
@@ -858,13 +888,13 @@ public final class Transform {
                     new FileTemplateLoader(templatesDir), templateLoader);
         }
         fmConfig.setTemplateLoader(templateLoader);
-        
+
         fmConfig.setLocale(locale);
         fmConfig.setTimeZone(timeZone);
-        
+
 
         // Do the actual job:
-        
+
         // - Load and validate the book XML
         File docFile = new File(contentDir, FILE_BOOK);
         if (!docFile.isFile()) {
@@ -876,7 +906,7 @@ public final class Transform {
         }
         Document doc = XMLUtil.loadDocBook5XML(
                 docFile, validate, validationOps, logger);
-        
+
         // - Post-edit and examine the DOM:
         preprocessDOM(doc);
 
@@ -896,7 +926,7 @@ public final class Transform {
                         + "\" exists in the book.");
             }
         }
-        
+
         // - Setup common data-model variables:
         try {
             // Settings:
@@ -916,7 +946,7 @@ public final class Transform {
                     VAR_INTERNAL_BOOKMARDS, internalBookmarks);
             fmConfig.setSharedVariable(
                     VAR_ROOT_ELEMENT, doc.getDocumentElement());
-            
+
             // Calculated data:
             fmConfig.setSharedVariable(
                     VAR_TRANSFORM_START_TIME, new Date());
@@ -931,7 +961,7 @@ public final class Transform {
                             || externalBookmarks.size() != 0);
             fmConfig.setSharedVariable(
                     VAR_SHOW_BREADCRUMB, tofCntLv1 != tofCntLv2);
-            
+
             // Helper methods and directives:
             fmConfig.setSharedVariable(
                     "NodeFromID", nodeFromID);
@@ -946,8 +976,8 @@ public final class Transform {
         } catch (TemplateModelException e) {
             throw new BugException(e);
         }
-        
-        // - Generate the HTML-s: 
+
+        // - Generate the HTML-s:
         logger.info("Generating HTML files...");
         int htmlFileCounter = 0;
         for (TOCNode tocNode : tocNodes) {
@@ -985,12 +1015,12 @@ public final class Transform {
             copyCommonStatic("linktargetmarker.js");
             copyCommonStatic("img/linktargetmarker.gif");
         }
-        
+
         // - Copy the custom statics:
         logger.info("Copying custom static files...");
         int bookSpecStaticFileCounter = FileUtil.copyDir(
                 contentDir, destDir, true);
-        
+
         // - Eclipse ToC:
         if (generateEclipseTOC) {
             logger.info("Generating Eclipse ToC...");
@@ -1015,7 +1045,7 @@ public final class Transform {
                 wr.close();
             }
         }
-        
+
         // - Report summary:
         logger.info(
                 "Done: "
@@ -1026,7 +1056,7 @@ public final class Transform {
 
     private DocgenException newCfgFileException(
             File cfgFile, String settingName, String desc) {
-        settingName = settingName.replace(".", "\" per \""); 
+        settingName = settingName.replace(".", "\" per \"");
         return newCfgFileException(cfgFile, "Wrong value for setting \""
                 + settingName + "\": " + desc);
     }
@@ -1034,7 +1064,7 @@ public final class Transform {
     private DocgenException newCfgFileException(File cfgFile, String desc) {
         return newCfgFileException(cfgFile, desc, (Throwable) null);
     }
-    
+
     private DocgenException newCfgFileException(File cfgFile, String desc,
             Throwable cause) {
         StringBuilder sb = new StringBuilder();
@@ -1073,7 +1103,7 @@ public final class Transform {
         }
         return (String) settingValue;
     }
-    
+
     private boolean itIsABooleanSetting(File cfgFile,
             String settingName, Object settingValue) throws DocgenException {
         if (!(settingValue instanceof Boolean)) {
@@ -1084,11 +1114,11 @@ public final class Transform {
         }
         return (Boolean) settingValue;
     }
-    
+
     private int itIsAnIntSetting(File cfgFile,
             String settingName, Object settingValue)
             throws DocgenException {
-        
+
         if (!(settingValue instanceof Number)) {
             throw newCfgFileException(
                     cfgFile, settingName,
@@ -1103,7 +1133,7 @@ public final class Transform {
         }
         return ((Integer) settingValue).intValue();
     }
-    
+
     /* Unused at the moment
     @SuppressWarnings("unchecked")
     private List<String> itIsAListOfStringsSetting(File cfgFile,
@@ -1115,7 +1145,7 @@ public final class Transform {
                     + CJSONInterpreter.cjsonTypeOf(settingValue) + ".");
         }
         List ls = (List) settingValue;
-        
+
         for (Object i : ls) {
             if (!(i instanceof String)) {
             throw newCfgFileException(
@@ -1124,11 +1154,11 @@ public final class Transform {
                     + "is a " + CJSONInterpreter.cjsonTypeOf(i) + ".");
             }
         }
-        
+
         return ls;
     }
     */
-    
+
     private String itIsAStringValueInAMapSetting(File cfgFile,
             String settingName, Object mapEntryValue) throws DocgenException {
         if (!(mapEntryValue instanceof String)) {
@@ -1139,7 +1169,7 @@ public final class Transform {
         }
         return (String) mapEntryValue;
     }
-    
+
     private void copyCommonStatic(String path) throws IOException {
         FileUtil.copyResourceIntoFile(
                 Transform.class, "statics", path,
@@ -1158,15 +1188,15 @@ public final class Transform {
         preprocessDOM_misc(doc);
         preprocessDOM_buildTOC(doc);
     }
-    
+
     private static final class PreprocessDOMMisc_GlobalState {
         private int lastId;
-        
+
         /** Style silencer:  notAUtiltiyClass() never used */
         private PreprocessDOMMisc_GlobalState() {
             notAUtiltiyClass();
         }
-        
+
         /** CheckStyle silencer */
         void notAUtiltiyClass() {
             // Nop
@@ -1179,18 +1209,18 @@ public final class Transform {
         private int arabicNumber = 1;
         private int upperLatinNumber = 1;
         private int unitedNumber = 1;
-        
+
         /** Style silencer:  notAUtiltiyClass() never used */
         private PreprocessDOMMisc_ParentSectState() {
             notAUtiltiyClass();
         }
-        
+
         /** CheckStyle silencer */
         void notAUtiltiyClass() {
             // Nop
         }
     }
-    
+
     private void preprocessDOM_misc(Document doc)
             throws SAXException, DocgenException {
         preprocessDOM_misc_inner(doc,
@@ -1199,7 +1229,7 @@ public final class Transform {
         indexEntries = new ArrayList<String>(primaryIndexTermLookup.keySet());
         Collections.sort(indexEntries, Collator.getInstance(locale));
     }
-    
+
     private void preprocessDOM_misc_inner(
             Node node,
             PreprocessDOMMisc_GlobalState globalState,
@@ -1207,7 +1237,7 @@ public final class Transform {
             throws SAXException, DocgenException {
         if (node instanceof Element) {
             Element elem = (Element) node;
-            
+
             // xml:id -> id:
             String id = XMLUtil.getAttribute(elem, "xml:id");
             if (id != null) {
@@ -1241,7 +1271,7 @@ public final class Transform {
             if (id != null) {
                 elementsById.put(id, elem);
             }
-            
+
             // Add default titles:
             if (elemName.equals(E_PREFACE)
                     || elemName.equals(E_GLOSSARY)
@@ -1250,7 +1280,7 @@ public final class Transform {
                         elem,
                         Character.toUpperCase(elemName.charAt(0))
                         + elemName.substring(1));
-            
+
             // Simplify tables:
             } else if (
                     (elemName.equals(E_INFORMALTABLE)
@@ -1276,7 +1306,7 @@ public final class Transform {
                     }
                 }
             }
-            
+
             // Adding title prefixes to document structure elements:
             if (DOCUMENT_STRUCTURE_ELEMENTS.contains(elemName)) {
                 final String prefix;
@@ -1304,7 +1334,7 @@ public final class Transform {
                 } else {
                     prefix = null;
                 }
-                
+
                 if (prefix != null) {
                     final String fullPrefix;
                     final Node parent = elem.getParentNode();
@@ -1327,20 +1357,20 @@ public final class Transform {
                     } else {
                         fullPrefix = prefix;
                     }
-                    
+
                     elem.setAttribute(A_DOCGEN_TITLE_PREFIX, fullPrefix);
-                } // if prefix != null 
-                
+                } // if prefix != null
+
                 elem.setAttribute(
                         A_DOCGEN_UNITED_NUMBERING,
                         String.valueOf(parentSectState.unitedNumber++));
-                
+
                 // We will be the parent document structure element of the soon
-                // processed children: 
+                // processed children:
                 parentSectState = new PreprocessDOMMisc_ParentSectState();
             } // if document structure element
         } // if element
-        
+
         NodeList children = node.getChildNodes();
         int ln = children.getLength();
         for (int i = 0; i < ln; i++) {
@@ -1374,7 +1404,7 @@ public final class Transform {
 
     private void preprocessDOM_addRanks_underBookRank(
             Element root) throws DocgenException {
-        
+
         // Find the common rank:
         DocumentStructureRank commonRank = null;
         for (Element child : XMLUtil.childrenElementsOf(root)) {
@@ -1402,7 +1432,7 @@ public final class Transform {
         if (commonRank == null) {
             commonRank = DocumentStructureRank.CHAPTER;
         }
-        
+
         // Apply the common rank plus go deeper:
         for (Element child : XMLUtil.childrenElementsOf(root)) {
             if (DOCUMENT_STRUCTURE_ELEMENTS.contains(child.getLocalName())) {
@@ -1432,7 +1462,7 @@ public final class Transform {
             }
         }
     }
-    
+
     private void preprocessDOM_addRanks_underChapterRankOrDeeper(
             Element parent, int underSectionRank) throws DocgenException {
         for (Element child : XMLUtil.childrenElementsOf(parent)) {
@@ -1441,7 +1471,7 @@ public final class Transform {
                     child.setAttribute(
                             A_DOCGEN_RANK,
                             DocumentStructureRank.SIMPLESECT.toString());
-                    // Note: simplesection-s are leafs in the ToC hierarchy. 
+                    // Note: simplesection-s are leafs in the ToC hierarchy.
                 } else {
                     if (underSectionRank + 1 > DocgenRestrictionsValidator
                             .MAX_SECTION_NESTING_LEVEL) {
@@ -1452,24 +1482,24 @@ public final class Transform {
                                         DocgenRestrictionsValidator
                                                 .MAX_SECTION_NESTING_LEVEL));
                     }
-                    
+
                     child.setAttribute(
                             A_DOCGEN_RANK,
                             DocumentStructureRank.sectionToString(
                                     underSectionRank + 1));
-                    
+
                     preprocessDOM_addRanks_underChapterRankOrDeeper(
                             child, underSectionRank + 1);
                 }
             }
         }
     }
-    
+
     private void preprocessDOM_buildTOC(Document doc) throws DocgenException {
         preprocessDOM_buildTOC_inner(doc, 0, null);
         if (tocNodes.size() > 0) {
             preprocessDOM_buildTOC_checkTOCTopology(tocNodes.get(0));
-            
+
             if (!tocNodes.get(0).isFileElement()) {
                 throw new BugException(
                         "The root ToC node must be a file-element.");
@@ -1477,16 +1507,16 @@ public final class Transform {
             preprocessDOM_buildTOC_checkFileTopology(tocNodes.get(0));
         }
     }
-    
+
     private static final String COMMON_TOC_TOPOLOGY_ERROR_HINT
             = " (Hint: Review the \"" + SETTING_LOWEST_PAGE_TOC_ELEMENT_RANK
               + "\" setting. Maybe it's incompatible with the structure of "
               + "this document.)";
-    
+
     private void preprocessDOM_buildTOC_checkTOCTopology(TOCNode tocNode)
     throws DocgenException {
         // Check parent-child relation:
-        TOCNode parent = tocNode.getParent(); 
+        TOCNode parent = tocNode.getParent();
         if (parent != null && !parent.getElement().isSameNode(
                 tocNode.getElement().getParentNode())) {
             throw new DocgenException(
@@ -1499,7 +1529,7 @@ public final class Transform {
                     + "like)."
                     + COMMON_TOC_TOPOLOGY_ERROR_HINT);
         }
-    
+
         // Check following-sibling relation:
         TOCNode next = tocNode.getNext();
         Element relevantSibling = preprocessDOM_buildTOC_getSectionLikeSibling(
@@ -1538,7 +1568,7 @@ public final class Transform {
                         + COMMON_TOC_TOPOLOGY_ERROR_HINT);
             }
         }
-        
+
         // Check preceding-sibling relation:
         TOCNode prev = tocNode.getPrevious();
         relevantSibling = preprocessDOM_buildTOC_getSectionLikeSibling(
@@ -1552,14 +1582,14 @@ public final class Transform {
                     + "element as its preceding sibling."
                     + COMMON_TOC_TOPOLOGY_ERROR_HINT);
         }
-        
+
         TOCNode child = tocNode.getFirstChild();
         while (child != null) {
             preprocessDOM_buildTOC_checkTOCTopology(child);
             child = child.getNext();
         }
     }
-    
+
     private Element preprocessDOM_buildTOC_getSectionLikeSibling(
             Element elem, boolean next) {
         Node relevantSibling = elem;
@@ -1580,20 +1610,20 @@ public final class Transform {
             = " (Hint: Review the \"" + SETTING_LOWEST_FILE_ELEMENT_RANK
               + "\" setting. Maybe it's incompatible with the structure of "
               + "this document.)";
-    
+
     private void preprocessDOM_buildTOC_checkFileTopology(TOCNode tocNode)
             throws DocgenException {
         TOCNode firstChild  = tocNode.getFirstChild();
         if (firstChild != null) {
             boolean firstIsFileElement = firstChild.isFileElement();
-            
+
             TOCNode child = firstChild;
             do {
                 if (child.isFileElement() != firstIsFileElement) {
                     throw new DocgenException("Bad file-element topology: "
                             + "The first child element of "
                             + tocNode.theSomethingElement()
-                            + ", " + firstChild.theSomethingElement() 
+                            + ", " + firstChild.theSomethingElement()
                             + ", is " + (firstIsFileElement ? "a" : "not a")
                             + " file-element, while another child, "
                             + child.theSomethingElement()
@@ -1602,12 +1632,12 @@ public final class Transform {
                             + "file-elements or neither can be."
                             + COMMON_FILE_TOPOLOGY_ERROR_HINT);
                 }
-                
+
                 preprocessDOM_buildTOC_checkFileTopology(child);
-                
+
                 child = child.getNext();
             } while (child != null);
-            
+
             if (firstIsFileElement && !tocNode.isFileElement()) {
                 throw new DocgenException("Bad file-element topology: "
                         + tocNode.theSomethingElement() + " is not a "
@@ -1618,21 +1648,21 @@ public final class Transform {
             }
         }
     }
-    
+
     private TOCNode preprocessDOM_buildTOC_inner(Node node,
             final int sectionLevel, TOCNode parentTOCNode)
             throws DocgenException {
         TOCNode curTOCNode = null;
         int newSectionLevel = sectionLevel;
-        
+
         if (node instanceof Element) {
             final Element elem = (Element) node;
             final String nodeName = node.getNodeName();
-            
+
             if (DOCUMENT_STRUCTURE_ELEMENTS.contains(nodeName)) {
                 DocumentStructureRank rank = DocumentStructureRank.valueOf(
                         XMLUtil.getAttribute(elem, A_DOCGEN_RANK)
-                                .toUpperCase()); 
+                                .toUpperCase());
                 final boolean isTheDocumentElement
                         = elem.getParentNode() instanceof Document;
                 if (isTheDocumentElement
@@ -1644,7 +1674,7 @@ public final class Transform {
                             || rank.compareTo(lowestFileElemenRank) >= 0)
                             && !hasPrefaceLikeParent(elem)) {
                         elem.setAttribute(A_DOCGEN_FILE_ELEMENT, "true");
-                        
+
                         if (isTheDocumentElement) {
                             curTOCNode.setFileName(FILE_INDEX_HTML);
                             elem.setAttribute(A_DOCGEN_ROOT_ELEMENT, "true");
@@ -1673,7 +1703,7 @@ public final class Transform {
                                         + " has an xml:id that is deduced to "
                                         + "a reserved output file name, \""
                                         + fileName + "\". (Hint: Change the "
-                                        + "xml:id.)"); 
+                                        + "xml:id.)");
                             }
                             curTOCNode.setFileName(fileName);
                         }
@@ -1684,18 +1714,18 @@ public final class Transform {
                 } // if ToC element
             }  // if document structure element
         }  // if Element
-        
+
         if (curTOCNode != null) {
             parentTOCNode = curTOCNode;
         }
-        
+
         NodeList children = node.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             TOCNode child = preprocessDOM_buildTOC_inner(
                     children.item(i),
                     newSectionLevel,
                     parentTOCNode);
-            
+
             if (child != null && parentTOCNode != null) {
                 child.setParent(parentTOCNode);
                 TOCNode lastChild = parentTOCNode.getLastChild();
@@ -1703,17 +1733,17 @@ public final class Transform {
                     child.setPrevious(lastChild);
                     lastChild.setNext(child);
                 }
-                
+
                 if (parentTOCNode.getFirstChild() == null) {
                     parentTOCNode.setFirstChild(child);
                 }
                 parentTOCNode.setLastChild(child);
             }
         }
-        
+
         return curTOCNode;
     }
-    
+
     private boolean hasPrefaceLikeParent(Element elem) {
         while (true) {
             Node parent = elem.getParentNode();
@@ -1757,15 +1787,15 @@ public final class Transform {
             }
         } while (node.getNodeType() != Node.DOCUMENT_NODE);
         Document doc = (Document) node;
-        
+
         // Create the title node:
         Element title = doc.createElementNS(XMLNS_DOCBOOK5, E_TITLE);
         title.appendChild(doc.createTextNode(defaultTitle));
-        
+
         // Insert it into the tree:
         elem.insertBefore(title, elem.getFirstChild());
     }
-    
+
     /**
      * Returns the {@link TOCNode} that corresponds to the element, or
      * {@link null} if it's not a file element. Can be called only
@@ -1780,7 +1810,7 @@ public final class Transform {
         }
         return null;
     }
-    
+
     private void addIndexTerm(Node node) {
         Node primary = null;
         Node secondary = null;
@@ -1796,12 +1826,12 @@ public final class Transform {
                 }
             }
         }
-    
+
         String primaryText = primary.getFirstChild().getNodeValue().trim();
         if (!primaryIndexTermLookup.containsKey(primaryText)) {
             primaryIndexTermLookup.put(primaryText, new ArrayList<NodeModel>());
         }
-    
+
         if (secondary != null) {
             if (!secondaryIndexTermLookup.containsKey(primaryText)) {
                 secondaryIndexTermLookup.put(
@@ -1821,17 +1851,17 @@ public final class Transform {
             primaryIndexTermLookup.get(primaryText).add(NodeModel.wrap(node));
         }
     }
-    
+
     /**
      * Generates a HTML file for the {@link #currentFileTOCNode}, maybe with
-     * some accompanying HTML-s. 
+     * some accompanying HTML-s.
      */
     private int generateHTMLFile()
             throws IOException, TemplateException {
         SimpleHash dataModel = new SimpleHash();
-        
+
         TOCNode otherTOCNode;
-        
+
         otherTOCNode = currentFileTOCNode;
         do {
             otherTOCNode = otherTOCNode.getPreviousInTraversarOrder();
@@ -1839,20 +1869,20 @@ public final class Transform {
         dataModel.put(
                 VAR_PREVIOUS_FILE_ELEMENT,
                 otherTOCNode != null ? otherTOCNode.getElement() : null);
-        
+
         otherTOCNode = currentFileTOCNode;
         do {
             otherTOCNode = otherTOCNode.getNextInTraversarOrder();
         } while (!(otherTOCNode == null || otherTOCNode.isFileElement()));
         dataModel.put(
-                VAR_NEXT_FILE_ELEMENT, 
+                VAR_NEXT_FILE_ELEMENT,
                 otherTOCNode != null ? otherTOCNode.getElement() : null);
-        
+
         otherTOCNode = currentFileTOCNode.getParent();
         dataModel.put(
                 VAR_PARENT_FILE_ELEMENT,
                 otherTOCNode != null ? otherTOCNode.getElement() : null);
-        
+
         Element curElem = currentFileTOCNode.getElement();
         final boolean isTheDocumentElement
                 = curElem.getParentNode() instanceof Document;
@@ -1864,7 +1894,7 @@ public final class Transform {
                 VAR_STARTS_WITH_TOP_LEVEL_CONTENT,
                 startsWithTopLevelContent(currentFileTOCNode.getElement()));
 
-        boolean generateDetailedTOC = false; 
+        boolean generateDetailedTOC = false;
         if (isTheDocumentElement) {
             // Find out if an detailed ToC will be useful:
             int mainTOFEntryCount = countTOFEntries(
@@ -1880,9 +1910,9 @@ public final class Transform {
                         "show detailed");
             }
         }
-        
+
         generateHTMLFile_inner(dataModel, currentFileTOCNode.getFileName());
-        
+
         if (generateDetailedTOC) {
             dataModel.put(VAR_PAGE_TYPE, PAGE_TYPE_DETAILED_TOC);
             dataModel.put(
@@ -1897,7 +1927,7 @@ public final class Transform {
             return 1;
         }
     }
-    
+
     private int countTOFEntries(TOCNode parent,
             int displayDepth) {
         int sum = 0;
@@ -1930,7 +1960,7 @@ public final class Transform {
             writer.close();
         }
     }
-    
+
     /**
      * Checks if a document-structure-element starts with top-level content.
      * Top-level contain is visible content that is outside the nested
@@ -1954,7 +1984,7 @@ public final class Transform {
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -1979,7 +2009,7 @@ public final class Transform {
                     + "id.");
         }
         final Element idElem = (Element) node;
-        
+
         String fileName = null;
         Element curElem = idElem;
         do {
@@ -1990,7 +2020,7 @@ public final class Transform {
                 fileName = fileTOCNode.getFileName();
             }
         } while (fileName == null);
-        
+
         String link;
         if (currentFileTOCNode != null
                 && fileName.equals(currentFileTOCNode.getFileName())) {
@@ -1998,21 +2028,21 @@ public final class Transform {
         } else {
             link = fileName;
         }
-        
+
         if (getFileTOCNodeFor(idElem) == null) {
             link = link + "#" + id;
         }
-        
+
         // IE6 doesn't like empty href-s:
         if (link.length() == 0) {
             link = fileName;
         }
-        
+
         return link;
     }
-    
+
     private TemplateMethodModel createLinkFromID = new TemplateMethodModel() {
-        
+
         public Object exec(@SuppressWarnings("rawtypes") final List args)
                 throws TemplateModelException {
             if (args.size() != 1) {
@@ -2021,13 +2051,13 @@ public final class Transform {
                         + "parameter.");
             }
             String id = (String) args.get(0);
-            
+
             Element elem = elementsById.get(id);
             if (elem == null) {
                 throw new TemplateModelException(
                         "No element exists with this id: \"" + id + "\"");
             }
-            
+
             try {
                 return new SimpleScalar(createElementLinkURL(elem));
             } catch (DocgenException e) {
@@ -2035,15 +2065,15 @@ public final class Transform {
                         "CreateLinkFromID failed to create link.", e);
             }
         }
-        
+
     };
-    
+
     private TemplateMethodModel createLinkFromNode
             = new TemplateMethodModelEx() {
-        
+
         public Object exec(@SuppressWarnings("rawtypes") final List args)
                 throws TemplateModelException {
-            
+
             if (args.size() != 1) {
                 throw new TemplateModelException(
                         "Method CreateLinkFromNode should have exactly one "
@@ -2063,7 +2093,7 @@ public final class Transform {
                         + "element node, but it wasn't. (Class: "
                         + arg1.getClass().getName() + ")");
             }
-            
+
             try {
                 return new SimpleScalar(createElementLinkURL((Element) node));
             } catch (DocgenException e) {
@@ -2071,9 +2101,9 @@ public final class Transform {
                         "CreateLinkFromNode falied to create link.", e);
             }
         }
-        
+
     };
-    
+
     private TemplateMethodModel nodeFromID = new TemplateMethodModel() {
 
         public Object exec(@SuppressWarnings("rawtypes") List args)
@@ -2081,9 +2111,9 @@ public final class Transform {
             Node node = elementsById.get(args.get(0));
             return NodeModel.wrap(node);
         }
-        
+
     };
-    
+
     // -------------------------------------------------------------------------
 
     public File getDestinationDirectory() {
@@ -2092,6 +2122,7 @@ public final class Transform {
 
     /**
      * Sets the directory where all the output files will go.
+     * @param destDir
      */
     public void setDestinationDirectory(File destDir) {
         this.destDir = destDir;
@@ -2122,7 +2153,8 @@ public final class Transform {
      * RELAX NG Schema; defaults to {@code true}. Setting this to {@code false}
      * can have whatever random effects later if the DocBook isn't valid,
      * since the transformation written with the assumption that source is
-     * valid XML.  
+     * valid XML.
+     * @param validate
      */
     public void setValidate(boolean validate) {
         this.validate = validate;
@@ -2143,6 +2175,7 @@ public final class Transform {
     /**
      * Sets if {@link #execute()} should print feedback to the stdout.
      * Note that errors (exceptions) will never be printed, just thrown.
+     * @param printProgress
      */
     public void setPrintProgress(boolean printProgress) {
         this.printProgress = printProgress;
@@ -2155,7 +2188,7 @@ public final class Transform {
     public void setGenerateEclipseToC(boolean eclipseToC) {
         this.generateEclipseTOC = eclipseToC;
     }
-    
+
     // -------------------------------------------------------------------------
 
     /**
@@ -2178,7 +2211,7 @@ public final class Transform {
             this.element = element;
             this.traversalIndex = traversalIndex;
         }
-        
+
         public TOCNode getFirstChild() {
             return firstChild;
         }
@@ -2222,7 +2255,7 @@ public final class Transform {
         public void setFileName(String fileName) {
             this.fileName = fileName;
         }
-        
+
         public String getFileName() {
             return fileName;
         }
@@ -2230,11 +2263,11 @@ public final class Transform {
         public Element getElement() {
             return element;
         }
-        
+
         public boolean isFileElement() {
             return fileName != null;
         }
-        
+
         public String theSomethingElement() {
             return XMLUtil.theSomethingElement(element);
         }
@@ -2243,22 +2276,22 @@ public final class Transform {
             return traversalIndex + 1 < tocNodes.size()
                     ? tocNodes.get(traversalIndex + 1) : null;
         }
-        
+
         public TOCNode getPreviousInTraversarOrder() {
             return traversalIndex > 0
                     ? tocNodes.get(traversalIndex - 1) : null;
         }
-        
+
     }
-    
+
     enum DocumentStructureRank {
         SIMPLESECT, SECTION3, SECTION2, SECTION1, CHAPTER, PART, BOOK;
-        
+
         @Override
         public String toString() {
             return name().toLowerCase();
         }
-        
+
         static String sectionToString(int level) {
             return DocumentStructureRank.SECTION1.toString().substring(
                     0,
