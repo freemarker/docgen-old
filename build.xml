@@ -76,8 +76,8 @@
         destDir="@{destDir}"
         deprecation="on"
         debug="on"
-        source="1.5"
-        target="1.5"
+        source="1.8"
+        target="1.8"
         classpath="@{classpath}"
         classpathRef="@{classpathRef}"
         bootclasspath="${boot.classpath}"
@@ -146,6 +146,22 @@
       </delete>
     </sequential>
   </macrodef>
+	
+	<macrodef name="lessjs">
+	    <attribute name="input" />
+	    <attribute name="output" />
+	    <sequential>
+	        <java jar="${tool.rhino}" fork="true" output="@{output}">
+	            <arg path="${tool.less}" />
+	            <arg path="@{input}" />
+	        </java>
+	        <echo>Lessjs: generated @{output}</echo>
+	    </sequential>
+	</macrodef>
+
+	<target name="compilecss">
+	    <lessjs input="./public/stylesheets/main.less" output="./public/stylesheets/main.css" />
+	</target>
 
   
   <!-- ================================================================== -->

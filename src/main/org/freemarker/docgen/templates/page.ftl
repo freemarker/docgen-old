@@ -4,18 +4,18 @@
 [#import "navigation.ftl" as nav]
 [#import "node-handlers.ftl" as defaultNodeHandlers]
 [#import "customizations.ftl" as customizations]
-[#set nodeHandlers = [customizations, defaultNodeHandlers]]
+[#assign nodeHandlers = [customizations, defaultNodeHandlers]]
 [#-- Avoid inital empty line! --]
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <link rel="stylesheet" href="docgen-resources/docgen.css" type="text/css">
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="docgen-resources/styles.css" type="text/css">
   <meta name="generator" content="FreeMarker Docgen (DocBook 5)">
   <title>
-    [#set titleElement = u.getRequiredTitleElement(.node)]
-    [#set title = u.titleToString(titleElement)]
-    [#set topLevelTitle = u.getRequiredTitleAsString(.node?root.*)]
+    [#assign titleElement = u.getRequiredTitleElement(.node)]
+    [#assign title = u.titleToString(titleElement)]
+    [#assign topLevelTitle = u.getRequiredTitleAsString(.node?root.*)]
     ${topLevelTitle?html}[#if title != topLevelTitle] - ${title?html}[/#if]
   </title>
   [#if !disableJavaScript]
@@ -28,7 +28,7 @@
 [@nav.navigationBar top=true /]
 
 <div id="mainContent">
-  [#var pageType = pageType!.node?node_name]
+  [#assign pageType = pageType!.node?node_name]
 
   [#if pageType == "index" || pageType == "glossary"]
     [#visit .node using nodeHandlers]
@@ -39,12 +39,12 @@
 
     [#-- - Render page title: --]
     [#visit titleElement using nodeHandlers]
-    
+
     [#-- - Render either ToF (Table of Files) or Page ToC; --]
     [#--   both is called, but at least one of them will be empty: --]
     [@toc att="docgen_file_element" maxDepth=maxTOFDisplayDepth /]
     [@toc att="docgen_page_toc_element" maxDepth=99 title="Page Contents" minLength=2 /]
-    
+
     [#-- - Render the usual content, like <para>-s etc.: --]
     [#list .node.* as child]
       [#if child.@docgen_file_element?size == 0
@@ -54,9 +54,9 @@
       [/#if]
     [/#list]
   [/#if]
-  
+
   [#-- Render footnotes, if any: --]
-  [#set footnotes = defaultNodeHandlers.footnotes]
+  [#assign footnotes = defaultNodeHandlers.footnotes]
   [#if footnotes?size != 0]
     <div id="footnotes">
       Footnotes:
@@ -72,11 +72,11 @@
 [@nav.navigationBar top=false /]
 
 <table border=0 cellspacing=0 cellpadding=0 width="100%">
-  [#set pageGenTimeHTML = "HTML generated: ${transformStartTime?string('yyyy-MM-dd HH:mm:ss z')?html}"]
-  [#set footerTitleHTML = topLevelTitle?html]
-  [#set bookSubtitle = u.getOptionalSubtitleAsString(.node?root.book)]
+  [#assign pageGenTimeHTML = "HTML generated: ${transformStartTime?string('yyyy-MM-dd HH:mm:ss z')?html}"]
+  [#assign footerTitleHTML = topLevelTitle?html]
+  [#assign bookSubtitle = u.getOptionalSubtitleAsString(.node?root.book)]
   [#if bookSubtitle??]
-    [#set footerTitleHTML = footerTitleHTML + " -- " + bookSubtitle?html]
+    [#assign footerTitleHTML = footerTitleHTML + " -- " + bookSubtitle?html]
   [/#if]
   [#if !showXXELogo]
     <tr>
@@ -118,8 +118,8 @@
 </html>
 
 [#macro toc att maxDepth title=null minLength=1]
-  [#set tocElems = .node["*[@${att}]"]]
-  [#if tocElems?size >= minLength]
+  [#local tocElems = .node["*[@${att}]"]]
+  [#if (tocElems?size >= minLength)]
     <div class="toc">
       <p>
         <b>
@@ -142,7 +142,7 @@
           ]</font>[#t]
         [/#if]
       </p>
-      
+
       [@toc_inner tocElems att maxDepth /]
     </div>
     <a name="docgen_afterTheTOC"></a>

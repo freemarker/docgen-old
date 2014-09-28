@@ -5,8 +5,8 @@
 [/#function]
 
 [#function getOptionalTitleElement node]
-  [#var result = node.title]
-  [#if !result?has_content][#set result = node.info.title][/#if]
+  [#assign result = node.title]
+  [#if !result?has_content][#assign result = node.info.title][/#if]
   [#if !result?has_content]
      [#return null]
   [/#if]
@@ -14,7 +14,7 @@
 [/#function]
 
 [#function getRequiredTitleElement node]
-  [#var result = getOptionalTitleElement(node)]
+  [#assign result = getOptionalTitleElement(node)]
   [#if !result??]
     [#stop "Required \"title\" child element missing for element \""
         + node?node_name + "\"."]
@@ -27,8 +27,8 @@
 [/#function]
 
 [#function getOptionalSubtitleElement node]
-  [#var result = node.subtitle]
-  [#if !result?has_content][#set result = node.info.subtitle][/#if]
+  [#assign result = node.subtitle]
+  [#if !result?has_content][#assign result = node.info.subtitle][/#if]
   [#if !result?has_content]
     [#return null]
   [/#if]
@@ -40,7 +40,7 @@
 [/#function]
 
 [#function titleToString titleNode]
-  [#if titleNode?is_null]
+  [#if (!titleNode??)]
     [#-- Used for optional title --]
     [#return null]
   [/#if]
@@ -48,44 +48,44 @@
     [#-- Just a string... --]
     [#return titleNode]
   [/#if]
-  
-  [#var res = ""]
+
+  [#assign res = ""]
   [#list titleNode?children as child]
     [#if child?node_type == "text"]
-      [#set res = res + child]
+      [#assign res = res + child]
     [#elseif child?node_type == "element"]
-      [#var name = child?node_name]
+      [#assign name = child?node_name]
       [#if name == "literal"
           || name == "classname" || name == "methodname" || name == "package"
           || name == "replaceable"
           || name == "emphasis"
           || name == "phrase"]
-        [#set res = res + titleToString(child)]
+        [#assign res = res + titleToString(child)]
       [#elseif node != "subtitle"]
         [#stop 'The "${name}" in titles is not supported by Docgen.']
       [/#if]
     [/#if]
   [/#list]
-  
+
   [#return res]
 [/#function]
 
 [#-- "docStructElem" is a part, chapter, section, etc., NOT a title element --]
 [#function getTitlePrefix docStructElem, extraSpacing=false, longForm=false]
-  [#var prefix = docStructElem.@docgen_title_prefix[0]!null]
+  [#assign prefix = docStructElem.@docgen_title_prefix[0]!null]
   [#if !prefix??]
     [#return ""]
   [/#if]
 
-  [#var type = docStructElem?node_name]
-  
-  [#var spacer]
+  [#assign type = docStructElem?node_name]
+
+  [#assign spacer = ""]
   [#if extraSpacing]
-    [#set spacer = "\xA0\xA0\xA0"]
+    [#assign spacer = "\xA0\xA0\xA0"]
   [#else]
-    [#set spacer = " "]
+    [#assign spacer = " "]
   [/#if]
-  
+
   [#if type = "chapter"]
     [#return longForm?string("Chapter ", "") + prefix + spacer]
   [#elseif type = "appendix"]
